@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8 text-white text-center">
+    <h1 class="text-5xl font-bold mb-4">Welcome to Cosmic Cycles</h1>
+    <p class="text-xl mb-8">Your journey to self-mastery begins here.</p>
+    <div class="my-8">
+        <a href="{% url 'signup' %}" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-full text-lg">Begin Your Journey</a>
+    </div>
+
+    <div class="mt-16">
+        <h2 class="text-3xl font-bold mb-4">The Current Soul Cycle</h2>
+        <div class="bg-gray-800 bg-opacity-70 backdrop-blur-md rounded-xl shadow-lg p-6 max-w-2xl mx-auto border border-purple-900">
+            <h3 class="text-2xl font-semibold text-purple-100">{{ current_soul_period.name }}</h3>
+            <p class="text-purple-300 mt-2">{{ current_soul_period.principle }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

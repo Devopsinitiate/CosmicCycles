@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycles of Life - Self Mastery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        .cycle-card {
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            background: rgba(30, 30, 60, 0.5);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+        .cycle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(124, 58, 237, 0.3);
+            border-color: rgba(167, 139, 250, 0.5);
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.5s ease;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+        .period-active {
+            border-left: 4px solid #a855f7;
+            background: linear-gradient(90deg, rgba(88, 28, 135, 0.3) 0%, rgba(30, 30, 60, 0.5) 100%);
+            box-shadow: 0 0 15px rgba(168, 85, 247, 0.2);
+        }
+        .progress-ring__circle {
+            stroke: url(#gradient);
+        }
+        .glow-text {
+            text-shadow: 0 0 8px rgba(167, 139, 250, 0.7);
+        }
+    </style>
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+        </defs>
+    </svg>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen bg-fixed" style="background-image: url('https://images.unsplash.com/photo-1506318137071-a8e06380a7a1?q=80&w=3000'); background-size: cover; background-blend-mode: overlay;">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-400 mb-4">COSMIC CYCLES</h1>
+            <p class="text-xl text-purple-200 max-w-3xl mx-auto">Align with the universe's natural rhythms for celestial success</p>
+            <div class="mt-6 flex justify-center space-x-4">
+                <button id="dailyBtn" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full hover:from-purple-700 hover:to-blue-600 transition-all shadow-lg shadow-purple-500/20">Daily</button>
+                <button id="yearlyBtn" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Yearly</button>
+                <button id="businessBtn" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Business</button>
+                <button id="soulBtn" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Soul</button>
+            </div>
+        </header>
+
+        <!-- Current Time Display -->
+        <div class="bg-gray-800 bg-opacity-70 backdrop-blur-md rounded-xl shadow-lg p-6 mb-8 text-center border border-purple-900">
+            <div class="flex justify-center items-center space-x-4 mb-4">
+                <i class="fas fa-clock text-purple-400 text-2xl"></i>
+                <h2 class="text-2xl font-semibold text-purple-100" id="currentDateTime">Loading...</h2>
+            </div>
+            <div id="currentCycleInfo" class="max-w-2xl mx-auto">
+                <!-- Will be filled by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div id="contentArea">
+            <!-- Daily Cycle (Default View) -->
+            <div id="dailyContent" class="cycle-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Period cards will be inserted here by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Yearly Cycle (Hidden by default) -->
+            <div id="yearlyContent" class="cycle-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-semibold text-indigo-900 mb-4">Your Yearly Cycle</h2>
+                    <div class="flex flex-col md:flex-row items-center mb-6">
+                        <div class="w-full md:w-1/3 mb-4 md:mb-0">
+                            <label for="birthdate" class="block text-sm font-medium text-gray-700 mb-2">Enter your birthdate:</label>
+                            <input type="date" id="birthdate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            <button id="calculateYearly" class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Calculate</button>
+                        </div>
+                        <div class="w-full md:w-2/3 md:pl-8">
+                            <div id="yearlyProgress" class="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="yearlyProgressBar" class="h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div id="yearlyStatus" class="mt-4 text-lg text-indigo-800 font-medium"></div>
+                            <div id="yearlyDescription" class="mt-2 text-gray-600"></div>
+                        </div>
+                    </div>
+                    <div id="yearlyPeriods" class="space-y-4">
+                        <!-- Yearly periods will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Business Cycle (Hidden by default) -->
+            <div id="businessContent" class="cycle-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-semibold text-indigo-900 mb-4">Business Cycle</h2>
+                    <div class="flex flex-col md:flex-row items-center mb-6">
+                        <div class="w-full md:w-1/3 mb-4 md:mb-0">
+                            <label for="businessDate" class="block text-sm font-medium text-gray-700 mb-2">Business establishment date:</label>
+                            <input type="date" id="businessDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500">
+                            <button id="calculateBusiness" class="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Calculate</button>
+                        </div>
+                        <div class="w-full md:w-2/3 md:pl-8">
+                            <div id="businessProgress" class="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                                <div id="businessProgressBar" class="h-full bg-indigo-600 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <div id="businessStatus" class="mt-4 text-lg text-indigo-800 font-medium"></div>
+                            <div id="businessDescription" class="mt-2 text-gray-600"></div>
+                        </div>
+                    </div>
+                    <div id="businessPeriods" class="space-y-4">
+                        <!-- Business periods will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Soul Cycle (Hidden by default) -->
+            <div id="soulContent" class="cycle-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold text-indigo-900 mb-4">Soul Cycle</h2>
+                    <div class="flex flex-col md:flex-row items-center mb-8">
+                        <div class="w-full md:w-1/3 flex justify-center mb-4 md:mb-0">
+                            <div class="relative w-40 h-40">
+                                <svg class="w-full h-full" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="45" fill="none" stroke="#e2e8f0" stroke-width="8"/>
+                                    <circle id="soulProgressCircle" cx="50" cy="50" r="45" fill="none" stroke="#6366f1" stroke-width="8" stroke-dasharray="283" stroke-dashoffset="283" class="progress-ring__circle"/>
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span id="soulProgressText" class="text-2xl font-bold text-indigo-700">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full md:w-2/3 md:pl-8">
+                            <div id="soulStatus" class="text-xl font-semibold text-indigo-800 mb-2"></div>
+                            <div id="soulDates" class="text-gray-600 mb-3"></div>
+                            <div id="soulDescription" class="text-gray-700"></div>
+                        </div>
+                    </div>
+                    <div id="soulPeriods" class="space-y-4">
+                        <!-- Soul periods will be inserted here by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-16 text-center text-purple-300 text-sm">
+            <p>Based on the cosmic principles from "Self Mastery and Fate with the Cycles of Life"</p>
+            <p class="mt-2">© <span id="currentYear"></span> Cosmic Cycles App</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current year in footer
+            document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+            // Update current time display
+            function updateDateTime() {
+                const now = new Date();
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                document.getElementById('currentDateTime').textContent = now.toLocaleDateString('en-US', options);
+            }
+            updateDateTime();
+            setInterval(updateDateTime, 1000);
+
+            // Tab switching functionality
+            const tabs = ['daily', 'yearly', 'business', 'soul'];
+            tabs.forEach(tab => {
+                const btn = document.getElementById(`${tab}Btn`);
+                const content = document.getElementById(`${tab}Content`);
+                
+                btn.addEventListener('click', () => {
+                    // Hide all contents and reset all buttons
+                    document.querySelectorAll('.cycle-content').forEach(el => el.classList.add('hidden'));
+                    document.querySelectorAll('[id$="Btn"]').forEach(el => {
+                        el.classList.remove('bg-indigo-600', 'text-white');
+                        el.classList.add('bg-indigo-100', 'text-indigo-700');
+                    });
+                    
+                    // Show selected content and update button
+                    content.classList.remove('hidden');
+                    btn.classList.remove('bg-indigo-100', 'text-indigo-700');
+                    btn.classList.add('bg-indigo-600', 'text-white');
+                    
+                    // Update current cycle info
+                    updateCurrentCycleInfo(tab);
+                });
+            });
+
+            // Initialize daily cycle as default
+            document.getElementById('dailyBtn').click();
+
+            // Daily Cycle Implementation
+            function calculateDailyPeriods() {
+                const now = new Date();
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+                const totalMinutes = currentHour * 60 + currentMinute;
+                
+                // Each period is 3 hours and 26 minutes (206 minutes)
+                const periodDuration = 206;
+                const periods = [
+                    { 
+                        name: "Morning Period", 
+                        time: "6:00 a.m. - 9:26 a.m.", 
+                        principle: "New beginnings, planning, and mental work", 
+                        suggestion: "Start new tasks, intellectual work, planning",
+                        icon: "sunrise"
+                    },
+                    { 
+                        name: "Active Period", 
+                        time: "9:26 a.m. - 12:52 p.m.", 
+                        principle: "Action and execution", 
+                        suggestion: "Meetings, negotiations, physical activities",
+                        icon: "bolt"
+                    },
+                    { 
+                        name: "Period of Rest", 
+                        time: "12:52 p.m. - 4:18 p.m.", 
+                        principle: "Consolidation and rejuvenation", 
+                        suggestion: "Take a break, review work, gather energy",
+                        icon: "mug-hot"
+                    },
+                    { 
+                        name: "Period of Fulfillment", 
+                        time: "4:18 p.m. - 7:44 p.m.", 
+                        principle: "Day's efforts bear fruit", 
+                        suggestion: "Complete tasks, prepare for evening",
+                        icon: "check-circle"
+                    },
+                    { 
+                        name: "Period of Preparation", 
+                        time: "7:44 p.m. - 11:10 p.m.", 
+                        principle: "Introspection and preparing for next day", 
+                        suggestion: "Journaling, creative thinking, planning",
+                        icon: "pen-fancy"
+                    },
+                    { 
+                        name: "Period of Dreams", 
+                        time: "11:10 p.m. - 2:36 a.m.", 
+                        principle: "Deep rest and subconscious activity", 
+                        suggestion: "Sleep and deep rest",
+                        icon: "moon"
+                    },
+                    { 
+                        name: "Period of Introspection", 
+                        time: "2:36 a.m. - 6:00 a.m.", 
+                        principle: "Profound spiritual and creative thought", 
+                        suggestion: "Meditation, deep thinking (if awake)",
+                        icon: "brain"
+                    }
+                ];
+                
+                // Calculate current period (starting from 6:00 AM = 360 minutes)
+                let adjustedMinutes = (totalMinutes - 360 + 1440) % 1440;
+                let currentPeriodIndex = Math.floor(adjustedMinutes / periodDuration);
+                
+                // Fill the daily periods container
+                const container = document.querySelector('#dailyContent > div');
+                container.innerHTML = '';
+                
+                periods.forEach((period, index) => {
+                    const isActive = index === currentPeriodIndex;
+                    const card = document.createElement('div');
+                    card.className = `cycle-card bg-white rounded-xl shadow-md overflow-hidden fade-in ${isActive ? 'border-2 border-indigo-400' : ''}`;
+                    card.style.animationDelay = `${index * 0.1}s`;
+                    
+                    card.innerHTML = `
+                        <div class="p-6">
+                            <div class="flex items-center mb-4">
+                                <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 mr-4">
+                                    <i class="fas fa-${period.icon} text-lg"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800">${period.name}</h3>
+                            </div>
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-indigo-600">
+                                    <i class="far fa-clock mr-2"></i>
+                                    <span>${period.time}</span>
+                                </div>
+                                <div class="text-gray-600">
+                                    <p class="font-medium">Principle:</p>
+                                    <p>${period.principle}</p>
+                                </div>
+                                <div class="text-gray-600">
+                                    <p class="font-medium">Suggested Activities:</p>
+                                    <p>${period.suggestion}</p>
+                                </div>
+                            </div>
+                            ${isActive ? '<div class="mt-4 py-2 px-4 bg-indigo-100 text-indigo-800 rounded-lg text-center font-medium">Current Period</div>' : ''}
+                        </div>
+                    `;
+                    
+                    container.appendChild(card);
+                });
+                
+                // Update current cycle info
+                const currentPeriod = periods[currentPeriodIndex];
+                const nextPeriodIndex = (currentPeriodIndex + 1) % periods.length;
+                const nextPeriod = periods[nextPeriodIndex];
+                
+                // Calculate time remaining in current period
+                const periodStartMinutes = 360 + currentPeriodIndex * periodDuration;
+                const periodEndMinutes = periodStartMinutes + periodDuration;
+                const currentMinutesInPeriod = adjustedMinutes - currentPeriodIndex * periodDuration;
+                const minutesRemaining = periodDuration - currentMinutesInPeriod;
+                
+                const hoursRemaining = Math.floor(minutesRemaining / 60);
+                const minsRemaining = minutesRemaining % 60;
+                
+                document.getElementById('currentCycleInfo').innerHTML = `
+                    <div class="bg-indigo-50 rounded-lg p-4">
+                        <h3 class="text-xl font-semibold text-indigo-800 mb-2">Current Daily Period: ${currentPeriod.name}</h3>
+                        <p class="text-indigo-700">${currentPeriod.principle}</p>
+                        <p class="mt-2 text-gray-600"><strong>Time remaining:</strong> ${hoursRemaining}h ${minsRemaining}m</p>
+                        <p class="mt-1 text-gray-600"><strong>Next:</strong> ${nextPeriod.name} at ${nextPeriod.time.split(' - ')[0]}</p>
+                    </div>
+                `;
+            }
+            
+            // Yearly Cycle Implementation
+            document.getElementById('calculateYearly').addEventListener('click', function() {
+                const birthdateInput = document.getElementById('birthdate').value;
+                if (!birthdateInput) {
+                    alert('Please enter your birthdate');
+                    return;
+                }
+                
+                const birthdate = new Date(birthdateInput);
+                const now = new Date();
+                
+                // Adjust birthdate to this year
+                const thisYearBirthday = new Date(now.getFullYear(), birthdate.getMonth(), birthdate.getDate());
+                
+                // If birthday hasn't happened yet this year, use last year's birthday
+                const lastBirthday = now < thisYearBirthday ? 
+                    new Date(now.getFullYear() - 1, birthdate.getMonth(), birthdate.getDate()) : 
+                    thisYearBirthday;
+                
+                const nextBirthday = new Date(lastBirthday);
+                nextBirthday.setFullYear(lastBirthday.getFullYear() + 1);
+                
+                const daysInCycle = Math.floor((nextBirthday - lastBirthday) / (1000 * 60 * 60 * 24));
+                const daysSinceLastBirthday = Math.floor((now - lastBirthday) / (1000 * 60 * 60 * 24));
+                const dayInCycle = daysSinceLastBirthday + 1; // Make it 1-based
+                
+                const periodDuration = Math.floor(daysInCycle / 7);
+                const currentPeriodIndex = Math.min(Math.floor((dayInCycle - 1) / periodDuration), 6);
+                const progressInPeriod = ((dayInCycle - 1) % periodDuration) / periodDuration * 100;
+                const overallProgress = dayInCycle / daysInCycle * 100;
+                
+                const periods = [
+                    { 
+                        name: "Period of Action", 
+                        days: "1-52", 
+                        principle: "Initiate new projects and undertakings", 
+                        suggestion: "Start new projects, set goals, take initiative"
+                    },
+                    { 
+                        name: "Period of Stabilization", 
+                        days: "53-104", 
+                        principle: "Solidify what was started", 
+                        suggestion: "Focus on consolidation, follow-through, attention to detail"
+                    },
+                    { 
+                        name: "Period of Rejuvenation", 
+                        days: "105-156", 
+                        principle: "Rest and recovery", 
+                        suggestion: "Lighter schedule, personal wellness activities"
+                    },
+                    { 
+                        name: "Period of Fruition", 
+                        days: "157-208", 
+                        principle: "Seeds planted earlier come to fruition", 
+                        suggestion: "Celebrate successes, reap rewards"
+                    },
+                    { 
+                        name: "Period of Reflection", 
+                        days: "209-260", 
+                        principle: "Introspection and review", 
+                        suggestion: "Review year's progress, contemplate future goals"
+                    },
+                    { 
+                        name: "Period of Transition", 
+                        days: "261-312", 
+                        principle: "Let go of the old", 
+                        suggestion: "Tie up loose ends, prepare for new cycle"
+                    },
+                    { 
+                        name: "Period of Preparation", 
+                        days: "313-365", 
+                        principle: "Prepare for new year", 
+                        suggestion: "Make resolutions, get ready for new cycle"
+                    }
+                ];
+                
+                // Update progress bar
+                document.getElementById('yearlyProgressBar').style.width = `${overallProgress}%`;
+                
+                // Update status text
+                const currentPeriod = periods[currentPeriodIndex];
+                document.getElementById('yearlyStatus').textContent = currentPeriod.name;
+                document.getElementById('yearlyDescription').innerHTML = `
+                    <p><strong>Principle:</strong> ${currentPeriod.principle}</p>
+                    <p class="mt-1"><strong>Suggestion:</strong> ${currentPeriod.suggestion}</p>
+                    <p class="mt-2 text-sm">Day ${dayInCycle} of ${daysInCycle} (${Math.round(overallProgress)}% through cycle)</p>
+                    <p class="text-sm">${Math.round(progressInPeriod)}% through current period</p>
+                `;
+                
+                // Fill yearly periods container
+                const container = document.getElementById('yearlyPeriods');
+                container.innerHTML = '';
+                
+                periods.forEach((period, index) => {
+                    const periodEl = document.createElement('div');
+                    periodEl.className = `p-4 rounded-lg ${index === currentPeriodIndex ? 'period-active' : 'bg-gray-50'}`;
+                    
+                    periodEl.innerHTML = `
+                        <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Days</p>
+                                <p>${period.days}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Principle</p>
+                                <p>${period.principle}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Suggested Activities</p>
+                                <p>${period.suggestion}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(periodEl);
+                });
+                
+                // Update current cycle info
+                updateCurrentCycleInfo('yearly');
+            });
+            
+            // Business Cycle Implementation (similar to yearly)
+            document.getElementById('calculateBusiness').addEventListener('click', function() {
+                const businessDateInput = document.getElementById('businessDate').value;
+                if (!businessDateInput) {
+                    alert('Please enter your business establishment date');
+                    return;
+                }
+                
+                const businessDate = new Date(businessDateInput);
+                const now = new Date();
+                
+                // Calculate days since establishment
+                const daysSinceEstablishment = Math.floor((now - businessDate) / (1000 * 60 * 60 * 24));
+                const dayInCycle = (daysSinceEstablishment % 365) + 1; // 1-based
+                
+                const periodDuration = Math.floor(365 / 7);
+                const currentPeriodIndex = Math.min(Math.floor((dayInCycle - 1) / periodDuration), 6);
+                const progressInPeriod = ((dayInCycle - 1) % periodDuration) / periodDuration * 100;
+                const overallProgress = dayInCycle / 365 * 100;
+                
+                const periods = [
+                    { 
+                        name: "Action Period", 
+                        days: "1-52", 
+                        principle: "Launch new products and expand operations", 
+                        suggestion: "Start marketing campaigns, new initiatives"
+                    },
+                    { 
+                        name: "Stabilization Period", 
+                        days: "53-104", 
+                        principle: "Strengthen business processes", 
+                        suggestion: "Improve efficiency, build customer relationships"
+                    },
+                    { 
+                        name: "Rejuvenation Period", 
+                        days: "105-156", 
+                        principle: "Review business plan", 
+                        suggestion: "Strategic planning, team-building"
+                    },
+                    { 
+                        name: "Fruition Period", 
+                        days: "157-208", 
+                        principle: "Sales growth and success", 
+                        suggestion: "Track KPIs, celebrate achievements"
+                    },
+                    { 
+                        name: "Reflection Period", 
+                        days: "209-260", 
+                        principle: "Analyze what worked", 
+                        suggestion: "Internal audits, financial review"
+                    },
+                    { 
+                        name: "Transition Period", 
+                        days: "261-312", 
+                        principle: "Prepare for next cycle", 
+                        suggestion: "Close old projects, restructure"
+                    },
+                    { 
+                        name: "Preparation Period", 
+                        days: "313-365", 
+                        principle: "Fine-tune strategies", 
+                        suggestion: "Plan for next year's initiatives"
+                    }
+                ];
+                
+                // Update progress bar
+                document.getElementById('businessProgressBar').style.width = `${overallProgress}%`;
+                
+                // Update status text
+                const currentPeriod = periods[currentPeriodIndex];
+                document.getElementById('businessStatus').textContent = currentPeriod.name;
+                document.getElementById('businessDescription').innerHTML = `
+                    <p><strong>Principle:</strong> ${currentPeriod.principle}</p>
+                    <p class="mt-1"><strong>Suggestion:</strong> ${currentPeriod.suggestion}</p>
+                    <p class="mt-2 text-sm">Day ${dayInCycle} of 365 (${Math.round(overallProgress)}% through cycle)</p>
+                    <p class="text-sm">${Math.round(progressInPeriod)}% through current period</p>
+                `;
+                
+                // Fill business periods container
+                const container = document.getElementById('businessPeriods');
+                container.innerHTML = '';
+                
+                periods.forEach((period, index) => {
+                    const periodEl = document.createElement('div');
+                    periodEl.className = `p-4 rounded-lg ${index === currentPeriodIndex ? 'period-active' : 'bg-gray-50'}`;
+                    
+                    periodEl.innerHTML = `
+                        <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Days</p>
+                                <p>${period.days}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Principle</p>
+                                <p>${period.principle}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Suggested Activities</p>
+                                <p>${period.suggestion}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(periodEl);
+                });
+                
+                // Update current cycle info
+                updateCurrentCycleInfo('business');
+            });
+            
+            // Soul Cycle Implementation
+            function calculateSoulCycle() {
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                
+                // Soul cycle starts around March 22 (spring equinox)
+                const cycleStart = new Date(currentYear, 2, 22); // March is month 2 (0-based)
+                if (now < cycleStart) {
+                    cycleStart.setFullYear(currentYear - 1);
+                }
+                
+                const cycleEnd = new Date(cycleStart);
+                cycleEnd.setFullYear(cycleStart.getFullYear() + 1);
+                
+                const totalDays = Math.floor((cycleEnd - cycleStart) / (1000 * 60 * 60 * 24));
+                const daysIntoCycle = Math.floor((now - cycleStart) / (1000 * 60 * 60 * 24));
+                const dayInCycle = daysIntoCycle + 1; // 1-based
+                
+                const periodDuration = Math.floor(totalDays / 7);
+                const currentPeriodIndex = Math.min(Math.floor((dayInCycle - 1) / periodDuration), 6);
+                const progressInPeriod = ((dayInCycle - 1) % periodDuration) / periodDuration * 100;
+                const overallProgress = dayInCycle / totalDays * 100;
+                
+                const periods = [
+                    { 
+                        name: "Period of Self-Realization", 
+                        dates: "March 22 - May 12", 
+                        principle: "Personal growth and creativity", 
+                        suggestion: "Develop new ideas, focus on personal development"
+                    },
+                    { 
+                        name: "Period of Integration", 
+                        dates: "May 13 - July 3", 
+                        principle: "Integrate new ideas into daily life", 
+                        suggestion: "Put plans into action, apply new skills"
+                    },
+                    { 
+                        name: "Period of Consolidation", 
+                        dates: "July 4 - August 24", 
+                        principle: "Solidify relationships", 
+                        suggestion: "Network, strengthen professional connections"
+                    },
+                    { 
+                        name: "Period of Release", 
+                        dates: "August 25 - October 15", 
+                        principle: "Let go of old habits", 
+                        suggestion: "Self-reflection, break bad habits"
+                    },
+                    { 
+                        name: "Period of Regeneration", 
+                        dates: "October 16 - December 5", 
+                        principle: "Spiritual growth and renewal", 
+                        suggestion: "Introspection, personal development"
+                    },
+                    { 
+                        name: "Period of Harmony", 
+                        dates: "December 6 - January 25", 
+                        principle: "Find balance in life", 
+                        suggestion: "Work-life balance, stress management"
+                    },
+                    { 
+                        name: "Period of Preparation", 
+                        dates: "January 26 - March 21", 
+                        principle: "Prepare for new beginnings", 
+                        suggestion: "Planning, goal-setting for new year"
+                    }
+                ];
+                
+                // Update progress circle
+                const circle = document.getElementById('soulProgressCircle');
+                const circumference = 2 * Math.PI * 45;
+                const offset = circumference - (overallProgress / 100 * circumference);
+                circle.style.strokeDashoffset = offset;
+                document.getElementById('soulProgressText').textContent = `${Math.round(overallProgress)}%`;
+                
+                // Update status text
+                const currentPeriod = periods[currentPeriodIndex];
+                document.getElementById('soulStatus').textContent = currentPeriod.name;
+                document.getElementById('soulDates').textContent = currentPeriod.dates;
+                document.getElementById('soulDescription').innerHTML = `
+                    <p><strong>Principle:</strong> ${currentPeriod.principle}</p>
+                    <p class="mt-1"><strong>Suggestion:</strong> ${currentPeriod.suggestion}</p>
+                    <p class="mt-2 text-sm">Day ${dayInCycle} of ${totalDays} (${Math.round(progressInPeriod)}% through period)</p>
+                `;
+                
+                // Fill soul periods container
+                const container = document.getElementById('soulPeriods');
+                container.innerHTML = '';
+                
+                periods.forEach((period, index) => {
+                    const periodEl = document.createElement('div');
+                    periodEl.className = `p-4 rounded-lg ${index === currentPeriodIndex ? 'period-active' : 'bg-gray-50'}`;
+                    
+                    periodEl.innerHTML = `
+                        <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-2">
+                            <div>
+                                <p class="text-sm text-gray-500">Dates</p>
+                                <p>${period.dates}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Principle</p>
+                                <p>${period.principle}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Suggested Activities</p>
+                                <p>${period.suggestion}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(periodEl);
+                });
+                
+                // Update current cycle info
+                updateCurrentCycleInfo('soul');
+            }
+            
+            // Update current cycle info based on active tab
+            function updateCurrentCycleInfo(activeTab) {
+                let infoHtml = '';
+                
+                switch(activeTab) {
+                    case 'daily':
+                        calculateDailyPeriods();
+                        // Info is already updated in calculateDailyPeriods()
+                        return;
+                    case 'yearly':
+                        const birthdateInput = document.getElementById('birthdate').value;
+                        if (!birthdateInput) return;
+                        
+                        const birthdate = new Date(birthdateInput);
+                        const now = new Date();
+                        const thisYearBirthday = new Date(now.getFullYear(), birthdate.getMonth(), birthdate.getDate());
+                        const lastBirthday = now < thisYearBirthday ? 
+                            new Date(now.getFullYear() - 1, birthdate.getMonth(), birthdate.getDate()) : 
+                            thisYearBirthday;
+                        
+                        const nextBirthday = new Date(lastBirthday);
+                        nextBirthday.setFullYear(lastBirthday.getFullYear() + 1);
+                        
+                        const daysSinceLastBirthday = Math.floor((now - lastBirthday) / (1000 * 60 * 60 * 24));
+                        const daysUntilNextBirthday = Math.floor((nextBirthday - now) / (1000 * 60 * 60 * 24));
+                        
+                        infoHtml = `
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h3 class="text-xl font-semibold text-indigo-800 mb-2">Your Yearly Cycle</h3>
+                                <p class="text-indigo-700">${document.getElementById('yearlyStatus').textContent}</p>
+                                <p class="mt-2 text-gray-600"><strong>Days since last birthday:</strong> ${daysSinceLastBirthday}</p>
+                                <p class="mt-1 text-gray-600"><strong>Days until next birthday:</strong> ${daysUntilNextBirthday}</p>
+                            </div>
+                        `;
+                        break;
+                    case 'business':
+                        const businessDateInput = document.getElementById('businessDate').value;
+                        if (!businessDateInput) return;
+                        
+                        const businessDate = new Date(businessDateInput);
+                        const daysSinceEstablishment = Math.floor((new Date() - businessDate) / (1000 * 60 * 60 * 24));
+                        const yearsInBusiness = Math.floor(daysSinceEstablishment / 365);
+                        const daysInCurrentCycle = daysSinceEstablishment % 365;
+                        
+                        infoHtml = `
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h3 class="text-xl font-semibold text-indigo-800 mb-2">Business Cycle</h3>
+                                <p class="text-indigo-700">${document.getElementById('businessStatus').textContent}</p>
+                                <p class="mt-2 text-gray-600"><strong>Years in business:</strong> ${yearsInBusiness}</p>
+                                <p class="mt-1 text-gray-600"><strong>Day in current cycle:</strong> ${daysInCurrentCycle}</p>
+                            </div>
+                        `;
+                        break;
+                    case 'soul':
+                        calculateSoulCycle();
+                        infoHtml = `
+                            <div class="bg-indigo-50 rounded-lg p-4">
+                                <h3 class="text-xl font-semibold text-indigo-800 mb-2">Soul Cycle</h3>
+                                <p class="text-indigo-700">${document.getElementById('soulStatus').textContent}</p>
+                                <p class="mt-2 text-gray-600">${document.getElementById('soulDates').textContent}</p>
+                            </div>
+                        `;
+                        break;
+                }
+                
+                document.getElementById('currentCycleInfo').innerHTML = infoHtml;
+            }
+            
+            // Initialize soul cycle
+            calculateSoulCycle();
+            
+            // Set up interval to update daily periods (every minute)
+            setInterval(calculateDailyPeriods, 60000);
+        });
+    </script>
+</body>
+</html>

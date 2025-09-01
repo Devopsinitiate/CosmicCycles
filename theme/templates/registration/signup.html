@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-gray-800 bg-opacity-70 backdrop-blur-md rounded-xl shadow-lg p-8 max-w-md w-full border border-purple-900">
+        <h2 class="text-3xl font-bold text-center text-white mb-8">Create Your Account</h2>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="block text-purple-300 text-sm font-bold mb-2">{{ field.label }}</label>
+                    <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" id="{{ field.id_for_label }}" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-700 border-purple-700 text-white">
+                    {% if field.help_text %}
+                        <p class="text-gray-400 text-xs italic">{{ field.help_text }}</p>
+                    {% endif %}
+                    {% for error in field.errors %}
+                        <p class="text-red-500 text-xs italic">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+            <button type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-full focus:outline-none focus:shadow-outline mt-4">
+                Sign Up
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

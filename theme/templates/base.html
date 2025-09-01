@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cycles of Life</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'cycles/css/styles.css' %}">
+    <!-- flatpickr datepicker CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <svg width="0" height="0">
+        <defs>
+            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#8b5cf6" />
+                <stop offset="100%" stop-color="#ec4899" />
+            </linearGradient>
+        </defs>
+    </svg>
+</head>
+<body class="bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 min-h-screen bg-fixed" style="background-image: url('https://images.unsplash.com/photo-1506318137071-a8e06380a7a1?q=80&w=3000'); background-size: cover; background-blend-mode: overlay;">
+    <nav class="bg-gray-800 bg-opacity-50 backdrop-blur-md shadow-lg border-b border-purple-900">
+        <div class="container mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <a href="{% url 'home' %}" class="text-2xl font-bold text-white">Cosmic Cycles</a>
+                <div>
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'dashboard' %}" class="text-white hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Dashboard</a>
+                        <form action="{% url 'logout' %}" method="post" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-white hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Logout</button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}" class="text-white hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Login</a>
+                        <a href="{% url 'signup' %}" class="text-white hover:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Sign Up</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="container mx-auto px-4 mt-6">
+        {% if messages %}
+            <div class="space-y-2">
+                {% for message in messages %}
+                    {% comment %} Map Django message tags to Tailwind classes using conditionals {% endcomment %}
+                    {% if 'success' in message.tags %}
+                        <div class="px-4 py-2 rounded shadow bg-green-50 border-l-4 border-green-400 text-green-800">
+                            {{ message }}
+                        </div>
+                    {% elif 'error' in message.tags or 'danger' in message.tags %}
+                        <div class="px-4 py-2 rounded shadow bg-red-50 border-l-4 border-red-400 text-red-800">
+                            {{ message }}
+                        </div>
+                    {% else %}
+                        <div class="px-4 py-2 rounded shadow bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100">
+                            {{ message }}
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    {% block content %}
+    {% endblock %}
+    <!-- Toast container for JS to display transient messages -->
+    <div id="toastContainer" class="fixed top-6 right-6 z-50 space-y-2"></div>
+
+    <!-- flatpickr and site JS -->
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="{% static 'cycles/js/human_cycle.js' %}"></script>
+</body>
+</html>

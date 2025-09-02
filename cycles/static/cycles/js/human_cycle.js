@@ -407,7 +407,8 @@ document.addEventListener('DOMContentLoaded', function() {
     profileForm.addEventListener('submit', function(e) {
       e.preventDefault();
       const formData = new FormData(profileForm);
-      fetch('{% url "profile_update_api" %}', {
+      const url = profileForm.getAttribute('data-url');
+      fetch(url, {
         method: 'POST',
         headers: { 'X-Requested-With': 'XMLHttpRequest' },
         body: formData

@@ -5,7 +5,14 @@
   <h1 class="text-2xl font-semibold text-gray-800 dark:text-gray-100 mb-4">{% if business %}Edit business{% else %}Add business{% endif %}</h1>
   <form method="post" class="space-y-4">
     {% csrf_token %}
-    {{ form.as_p }}
+    <div>
+        <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
+        {{ form.name }}
+    </div>
+    <div>
+        <label for="{{ form.establishment_date.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Establishment Date</label>
+        {{ form.establishment_date }}
+    </div>
     <div class="flex justify-end">
       <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Save</button>
     </div>

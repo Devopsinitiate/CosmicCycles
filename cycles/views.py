@@ -200,13 +200,18 @@ def home(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
     
-    soul_periods, current_soul_period, soul_progress = get_soul_cycle()
+    daily_periods, current_daily_period = get_daily_cycle()
     context = {
-        'soul_periods': soul_periods,
-        'current_soul_period': current_soul_period,
-        'soul_progress': soul_progress,
+        'daily_periods': daily_periods,
+        'current_daily_period': current_daily_period,
     }
     return render(request, 'cycles/home.html', context)
+
+def about(request):
+    return render(request, 'cycles/about.html')
+
+
+
 
 
 @login_required

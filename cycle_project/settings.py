@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-#1^w)n2d4dl@k0jw1n=_8zvtu)3x8)wguhuj0jw&nf$jvfekcj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['99f5dd144c81.ngrok-free.app', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = ['96cbf3307ff8.ngrok-free.app', '127.0.0.1', 'localhost']
 
 TAILWIND_APP_NAME = 'theme'
 # Application definition

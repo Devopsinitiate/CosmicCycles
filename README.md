@@ -12,6 +12,14 @@ Cosmic Cycles is a web application that helps users understand the different cyc
 *   **Cycle Templates:** The application uses pre-defined templates for each cycle, which include descriptions, principles, and suggestions for each period.
 *   **API Endpoints:** The application provides API endpoints to retrieve cycle data in JSON format.
 
+## Recent Changes
+
+*   **Daily Cycle for All:** The daily cycle is now the default home page and is accessible to all users, authenticated or not.
+*   **About Page:** A new "About" page has been added to explain the purpose and principles of the application, with references to the book "Self-Mastery and Fate with the Cycles of Life" by H. Spencer Lewis.
+*   **UI/UX Refinements:** The user interface has been refined for better mobile compatibility and a more consistent user experience across the application.
+*   **Favicon:** A favicon has been added to the project.
+*   **Bug Fixes:** Fixed a bug where the profile update API URL was not being resolved correctly.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.

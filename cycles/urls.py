@@ -13,7 +13,8 @@ urlpatterns = [
     path('businesses/<int:pk>/edit/', views.business_edit, name='business_edit'),
     path('businesses/<int:pk>/delete/', views.business_delete, name='business_delete'),
     path('businesses/<int:pk>/delete/json/', views.business_delete_api, name='business_delete_api'),
-    path('api/user_cycle/human/', views.human_cycle_api, name='human_cycle_api'),
     path('api/user_cycle/<str:cycle_type>/', views.user_cycle_api, name='user_cycle_api'),
+    path('api/user_cycle/health/', views.user_cycle_api, {'cycle_type': 'health'}, name='health_cycle_api'),
+    path('api/user_cycle/reincarnation/', views.user_cycle_api, {'cycle_type': 'reincarnation'}, name='reincarnation_cycle_api'),
     path('signup/', views.SignUpView.as_view(), name='signup'),
 ]

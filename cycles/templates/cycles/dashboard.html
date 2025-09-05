@@ -13,10 +13,12 @@
         <h1 class="text-4xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-pink-500 to-blue-400 mb-4">COSMIC CYCLES</h1>
         <p class="text-xl text-purple-200 max-w-3xl mx-auto">Align with the universe's natural rhythms for celestial success</p>
         <div class="mt-6 flex flex-col md:flex-row justify-center space-y-2 md:space-y-0 md:space-x-4">
-            <button id="dailyBtn" data-cycle="daily" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full hover:from-purple-700 hover:to-blue-600 transition-all shadow-lg shadow-purple-500/20">Daily</button>
-            <button id="yearlyBtn" data-cycle="yearly" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Yearly</button>
-            <button id="businessBtn" data-cycle="business" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Business</button>
-            <button id="soulBtn" data-cycle="soul" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600">Soul</button>
+            <button id="dailyBtn" data-cycle="daily" class="px-6 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded-full hover:from-purple-700 hover:to-blue-600 transition-all shadow-lg shadow-purple-500/20"><i class="fas fa-sun mr-2"></i>Daily</button>
+            <button id="yearlyBtn" data-cycle="yearly" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600"><i class="fas fa-calendar-alt mr-2"></i>Yearly</button>
+            <button id="businessBtn" data-cycle="business" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600"><i class="fas fa-briefcase mr-2"></i>Business</button>
+            <button id="soulBtn" data-cycle="soul" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600"><i class="fas fa-heart mr-2"></i>Soul</button>
+            <button id="healthBtn" data-cycle="health" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600"><i class="fas fa-heartbeat mr-2"></i>Health</button>
+            <button id="reincarnationBtn" data-cycle="reincarnation" class="px-6 py-2 bg-gray-800 text-purple-300 rounded-full hover:bg-gray-700 transition-all border border-purple-900 hover:border-purple-600"><i class="fas fa-infinity mr-2"></i>Reincarnation</button>
         </div>
         <div class="mt-4 flex justify-center space-x-3">
             <a href="{% url 'edit_profile' %}" class="px-4 py-2 bg-white text-indigo-700 rounded shadow hover:bg-gray-100">Edit profile</a>
@@ -69,27 +71,16 @@
         <div id="cycleRing" class="w-36 h-36"></div>
     </div>
 
-    <!-- Template summary populated from API -->
-    <div id="humanTemplatePanel" class="bg-gray-800 bg-opacity-60 rounded-lg p-4 mb-6 border border-purple-800">
-        <h4 class="text-md text-purple-200 font-semibold">Period Summary</h4>
-        <p id="humanTemplateDescription" class="text-gray-300 mt-2"></p>
-        <div id="humanTemplateEffectsWrap" class="mt-3">
-            <h5 class="text-sm text-purple-300">Effects</h5>
-            <ul id="humanTemplateEffects" class="list-disc list-inside text-gray-400 mt-1"></ul>
-        </div>
-        <div class="mt-3">
-            <button id="openFullTemplate" class="px-3 py-1 bg-indigo-600 text-white rounded">View full details</button>
-        </div>
-    </div>
+    
 
     <!-- Full template modal -->
     <div id="fullTemplateModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 md:w-2/3 lg:w-1/2">
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 w-11/12 md:w-2/3 lg:max-w-3xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 id="modalTitle" class="text-xl font-semibold">Period Details</h3>
                 <button id="closeModal" class="text-gray-600">Close</button>
             </div>
-            <div id="modalBody" class="text-gray-800 dark:text-gray-200"></div>
+            <div id="modalBody" class="text-gray-800 dark:text-gray-200 overflow-y-auto" style="max-height: 70vh;"></div>
         </div>
     </div>
 
@@ -99,13 +90,28 @@
         <div id="dailyContent" class="cycle-content">
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {% for period in daily_periods %}
-                <div class="cycle-card bg-white rounded-xl shadow-md overflow-hidden fade-in {% if period.name == current_daily_period.name %}period-active{% endif %}">
-                    <div class="p-6">
-                        <h3 class="text-xl font-semibold text-gray-800">{{ period.name }}</h3>
-                        <p class="text-gray-600">{{ period.start }} - {{ period.end }}</p>
-                        <p class="text-gray-600 mt-2">{{ period.principle }}</p>
-                        <p class="text-gray-500 mt-2"><em>Suggestion: {{ period.suggestion }}</em></p>
+                <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if period.name == current_daily_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ period.name }}", "start": "{{ period.start }}", "end": "{{ period.end }}", "principle": "{{ period.principle }}", "suggestion": "{{ period.suggestion }}"}'>
+                    <div class="flex items-center mb-4">
+                        <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                            <i class="fas fa-sun text-lg"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-white">{{ period.name }}</h3>
                     </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center text-sm text-purple-300">
+                            <i class="far fa-clock mr-2"></i>
+                            <span>{{ period.start }} - {{ period.end }}</span>
+                        </div>
+                        <div class="text-purple-200">
+                            <p class="font-medium">Principle:</p>
+                            <p>{{ period.principle }}</p>
+                        </div>
+                        <div class="text-purple-200">
+                            <p class="font-medium">Suggested Activities:</p>
+                            <p>{{ period.suggestion }}</p>
+                        </div>
+                    </div>
+                    {% if period.name == current_daily_period.name %}<div class="mt-4 py-2 px-4 bg-purple-700 text-white rounded-lg text-center font-medium">Current Period</div>{% endif %}
                 </div>
                 {% endfor %}
             </div>
@@ -133,10 +139,18 @@
                 </div>
                 <div id="yearlyPeriods" class="space-y-4">
                     {% for period in yearly_periods %}
-                    <div class="p-4 rounded-lg {% if period.name == current_yearly_period.name %}period-active{% else %}bg-gray-50{% endif %}">
-                        <h4 class="font-semibold text-lg text-indigo-800">{{ period.name }}</h4>
-                        <p>{{ period.principle }}</p>
-                        <p class="text-gray-500 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
+                    <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if period.name == current_yearly_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ period.name }}", "principle": "{{ period.principle }}", "suggestion": "{{ period.suggestion }}", "start_date": "{{ period.start_date|date:"M d, Y" }}", "end_date": "{{ period.end_date|date:"M d, Y" }}", "full_description": "{{ period.full_description|escapejs }}"}'>
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                                <i class="fas fa-calendar-alt text-lg"></i>
+                            </div>
+                            <h4 class="font-semibold text-lg text-white">{{ period.name }}</h4>
+                        </div>
+                        <div class="text-sm text-purple-300">
+                            <span>{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-purple-200">{{ period.principle }}</p>
+                        <p class="text-purple-300 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
                     </div>
                     {% endfor %}
                 </div>
@@ -165,14 +179,22 @@
                 </div>
                 <div id="businessPeriods" class="space-y-4">
                     {% for cycle in business_cycles %}
-                    <div class="p-4 rounded-lg {% if cycle.current_period.name == cycle.current_period.name %}period-active{% else %}bg-gray-50{% endif %}">
-                        <h3 class="font-semibold text-lg text-indigo-800">{{ cycle.business.name }}</h3>
-                        <div class="relative w-full h-4 bg-gray-200 rounded-full overflow-hidden mt-2">
-                            <div class="h-full bg-indigo-600 rounded-full" data-progress="{{ cycle.progress }}"></div>
+                    <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if cycle.current_period.name == cycle.current_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ cycle.current_period.name }}", "principle": "{{ cycle.current_period.principle }}", "suggestion": "{{ cycle.current_period.suggestion }}", "start_date": "{{ cycle.current_period.start_date|date:"M d, Y" }}", "end_date": "{{ cycle.current_period.end_date|date:"M d, Y" }}", "full_description": "{{ cycle.full_description|escapejs }}"}'>
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                                <i class="fas fa-briefcase text-lg"></i>
+                            </div>
+                            <h3 class="font-semibold text-lg text-white">{{ cycle.business.name }}</h3>
                         </div>
-                        <div class="mt-2 text-lg text-indigo-800 font-medium">{{ cycle.current_period.name }}</div>
-                        <p class="text-gray-600">{{ cycle.current_period.principle }}</p>
-                        <p class="text-gray-500 mt-1"><em>Suggestion: {{ cycle.current_period.suggestion }}</em></p>
+                        <div class="text-sm text-purple-300">
+                            <span>{{ cycle.current_period.start_date|date:"M d, Y" }} - {{ cycle.current_period.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        <div class="relative w-full h-4 bg-gray-700 rounded-full overflow-hidden mt-2">
+                            <div class="h-full bg-purple-600 rounded-full" data-progress="{{ cycle.progress }}"></div>
+                        </div>
+                        <div class="mt-2 text-lg text-white font-medium">{{ cycle.current_period.name }}</div>
+                        <p class="text-purple-200">{{ cycle.current_period.principle }}</p>
+                        <p class="text-purple-300 mt-1"><em>Suggestion: {{ cycle.current_period.suggestion }}</em></p>
                     </div>
                     {% endfor %}
                 </div>
@@ -203,10 +225,66 @@
                 </div>
                 <div id="soulPeriods" class="space-y-4">
                     {% for period in soul_periods %}
-                    <div class="p-4 rounded-lg {% if period.name == current_soul_period.name %}period-active{% else %}bg-gray-50{% endif %}">
-                        <h4 class="font-semibold text-lg text-indigo-800">{{ period.name }}</h4>
-                        <p>{{ period.principle }}</p>
-                        <p class="text-gray-500 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
+                    <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if period.name == current_soul_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ period.name }}", "principle": "{{ period.principle }}", "suggestion": "{{ period.suggestion }}", "start_date": "{{ period.start_date|date:"M d, Y" }}", "end_date": "{{ period.end_date|date:"M d, Y" }}", "full_description": "{{ period.full_description|escapejs }}"}'>
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                                <i class="fas fa-heart text-lg"></i>
+                            </div>
+                            <h4 class="font-semibold text-lg text-white">{{ period.name }}</h4>
+                        </div>
+                        <div class="text-sm text-purple-300">
+                            <span>{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-purple-200">{{ period.principle }}</p>
+                        <p class="text-purple-300 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Health Cycle (Hidden by default) -->
+        <div id="healthContent" class="cycle-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold text-indigo-900 mb-4">Your Health Cycle</h2>
+                <div id="healthPeriods" class="space-y-4">
+                    {% for period in health_periods %}
+                    <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if period.name == current_health_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ period.name }}", "principle": "{{ period.principle }}", "suggestion": "{{ period.suggestion }}", "start_date": "{{ period.start_date|date:"M d, Y" }}", "end_date": "{{ period.end_date|date:"M d, Y" }}", "full_description": "{{ period.full_description|escapejs }}"}'>
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                                <i class="fas fa-heartbeat text-lg"></i>
+                            </div>
+                            <h4 class="font-semibold text-lg text-white">{{ period.name }}</h4>
+                        </div>
+                        <div class="text-sm text-purple-300">
+                            <span>{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-purple-200">{{ period.principle }}</p>
+                        <p class="text-purple-300 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Reincarnation Cycle (Hidden by default) -->
+        <div id="reincarnationContent" class="cycle-content hidden">
+            <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                <h2 class="text-2xl font-semibold text-indigo-900 mb-4">Your Reincarnation Cycle</h2>
+                <div id="reincarnationPeriods" class="space-y-4">
+                    {% for period in reincarnation_periods %}
+                    <div class="cycle-card bg-gray-800 bg-opacity-50 backdrop-blur-md rounded-xl shadow-lg p-6 border border-purple-800 {% if period.name == current_reincarnation_period.name %}period-active{% endif %}" data-period-details='{"name": "{{ period.name }}", "principle": "{{ period.principle }}", "suggestion": "{{ period.suggestion }}", "start_date": "{{ period.start_date|date:"M d, Y" }}", "end_date": "{{ period.end_date|date:"M d, Y" }}", "full_description": "{{ period.full_description|escapejs }}"}'>
+                        <div class="flex items-center mb-4">
+                            <div class="p-3 rounded-full bg-purple-500 text-white mr-4">
+                                <i class="fas fa-infinity text-lg"></i>
+                            </div>
+                            <h4 class="font-semibold text-lg text-white">{{ period.name }}</h4>
+                        </div>
+                        <div class="text-sm text-purple-300">
+                            <span>{{ period.start_date|date:"M d, Y" }} - {{ period.end_date|date:"M d, Y" }}</span>
+                        </div>
+                        <p class="text-purple-200">{{ period.principle }}</p>
+                        <p class="text-purple-300 mt-1"><em>Suggestion: {{ period.suggestion }}</em></p>
                     </div>
                     {% endfor %}
                 </div>

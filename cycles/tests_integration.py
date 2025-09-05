@@ -1,6 +1,7 @@
 from django.test import TestCase, RequestFactory
 from django.contrib.auth.models import User
 from .views import user_cycle_api
+
 from .models import UserProfile, Business
 import datetime
 import json

@@ -8,7 +8,22 @@ from django.views import generic
 from django.contrib import messages
 from .models import UserProfile, Business
 from .models import CycleTemplate
-from .utils import get_daily_cycle, get_yearly_cycle, get_business_cycle, get_soul_cycle, get_human_life_cycle
+from .utils import get_daily_cycle, get_yearly_cycle, get_business_cycle, get_soul_cycle, get_human_life_cycle, get_health_cycle, get_reincarnation_cycle
+
+def _get_template_for_cycle(cycle_type, period_number):
+    """Helper function to get the template for a given cycle type and period number."""
+    try:
+        tpl = CycleTemplate.objects.get(cycle_type=cycle_type, period_number=period_number)
+        return {
+            'description': tpl.description,
+            'effects': tpl.effects or {},
+            'start_age': (tpl.effects or {}).get('start_age'),
+            'end_age': (tpl.effects or {}).get('end_age'),
+            'advice': (tpl.effects or {}).get('advice') or (tpl.effects or {}).get('summary'),
+            'full_description': tpl.description
+        }
+    except CycleTemplate.DoesNotExist:
+        return None
 
 class SignUpView(generic.CreateView):
     from .forms import UserRegisterForm
@@ -151,6 +166,37 @@ def dashboard(request):
     soul_progress_offset = 283 - (283 * soul_progress / 100)
 
     human_periods, current_human_period, human_progress = get_human_life_cycle(user_profile.date_of_birth)
+    health_periods, current_health_period, health_progress = get_health_cycle(user_profile.date_of_birth)
+    reincarnation_periods, current_reincarnation_period, reincarnation_progress = get_reincarnation_cycle(user_profile.date_of_birth)
+
+    # Get full descriptions for all periods
+    for period in yearly_periods:
+        try:
+            template = CycleTemplate.objects.get(cycle_type='yearly', period_number=yearly_periods.index(period) + 1)
+            period['full_description'] = template.description
+        except (CycleTemplate.DoesNotExist, ValueError, AttributeError):
+            period['full_description'] = ''
+
+    for period in soul_periods:
+        try:
+            template = CycleTemplate.objects.get(cycle_type='soul', period_number=soul_periods.index(period) + 1)
+            period['full_description'] = template.description
+        except (CycleTemplate.DoesNotExist, ValueError, AttributeError):
+            period['full_description'] = ''
+
+    for period in health_periods:
+        try:
+            template = CycleTemplate.objects.get(cycle_type='health', period_number=health_periods.index(period) + 1)
+            period['full_description'] = template.description
+        except (CycleTemplate.DoesNotExist, ValueError, AttributeError):
+            period['full_description'] = ''
+
+    for period in reincarnation_periods:
+        try:
+            template = CycleTemplate.objects.get(cycle_type='reincarnation', period_number=reincarnation_periods.index(period) + 1)
+            period['full_description'] = template.description
+        except (CycleTemplate.DoesNotExist, ValueError, AttributeError):
+            period['full_description'] = ''
 
     businesses = Business.objects.filter(user=request.user)
     business_cycles = []
@@ -173,6 +219,7 @@ def dashboard(request):
             'current_period': current_period,
             'progress': progress,
             'template': tpl_obj,
+            'full_description': tpl.description if tpl else ''
         })
 
     context = {
@@ -193,6 +240,12 @@ def dashboard(request):
     'human_progress': human_progress,
         'businesses': businesses,
         'business_cycles': business_cycles,
+        'health_periods': health_periods,
+        'current_health_period': current_health_period,
+        'health_progress': health_progress,
+        'reincarnation_periods': reincarnation_periods,
+        'current_reincarnation_period': current_reincarnation_period,
+        'reincarnation_progress': reincarnation_progress,
     }
     return render(request, 'cycles/dashboard.html', context)
 
@@ -214,62 +267,7 @@ def about(request):
 
 
 
-@login_required
-def human_cycle_api(request):
-    """Return JSON with human life cycle data for the logged-in user."""
-    from .models import UserProfile as _UserProfile
-    # Protect against unsaved User() instances in tests - treat as unauthenticated
-    if not getattr(request.user, 'is_authenticated', False) or not getattr(request.user, 'pk', None):
-        return JsonResponse({'error': 'not_authenticated'}, status=302)
-    user_profile = _UserProfile.objects.filter(user=request.user).first()
-    if not user_profile or not user_profile.date_of_birth:
-        return JsonResponse({'error': 'birth_date_missing'}, status=400)
 
-    periods, current_period, progress = get_human_life_cycle(user_profile.date_of_birth)
-
-    # Determine numeric period number (1-based) for lookup
-    period_number = None
-    try:
-        if isinstance(current_period, dict) and 'name' in current_period:
-            # attempt to find index in periods
-            for idx, p in enumerate(periods):
-                if p is current_period or (p.get('name') == current_period.get('name') and p.get('start_age') == current_period.get('start_age')):
-                    period_number = idx + 1
-                    break
-        elif isinstance(current_period, int):
-            period_number = int(current_period)
-    except Exception:
-        period_number = None
-
-    # Try to include a CycleTemplate for the current human period if available
-    template = None
-    try:
-        if period_number:
-            tpl = CycleTemplate.objects.filter(cycle_type='human', period_number=period_number).first()
-        else:
-            tpl = None
-
-        if tpl:
-            # flatten key fields for easier client usage
-            tpl_effects = tpl.effects or {}
-            template = {
-                'description': tpl.description,
-                'effects': tpl_effects,
-                'start_age': tpl_effects.get('start_age'),
-                'end_age': tpl_effects.get('end_age'),
-                'advice': tpl_effects.get('advice') or tpl_effects.get('summary')
-            }
-    except Exception:
-        template = None
-
-    data = {
-        'periods': periods,
-        'current_period': current_period,
-        'current_period_number': period_number,
-        'progress': progress,
-        'template': template,
-    }
-    return JsonResponse(data)
 
 
 @login_required
@@ -280,34 +278,41 @@ def user_cycle_api(request, cycle_type):
     if not getattr(request.user, 'is_authenticated', False) or not getattr(request.user, 'pk', None):
         return JsonResponse({'error': 'not_authenticated'}, status=302)
     user_profile = _UserProfile.objects.filter(user=request.user).first()
-    if cycle_type in ('human',):
+
+    periods, current_period, progress = None, None, None
+    current_number = None
+
+    if cycle_type in ('human', 'yearly', 'health', 'reincarnation'):
         if not user_profile or not user_profile.date_of_birth:
             return JsonResponse({'error': 'birth_date_missing'}, status=400)
-        periods, current_period, progress = get_human_life_cycle(user_profile.date_of_birth)
-        current_number = None
+        if cycle_type == 'human':
+            periods, current_period, progress = get_human_life_cycle(user_profile.date_of_birth)
+        elif cycle_type == 'yearly':
+            periods, current_period, progress = get_yearly_cycle(user_profile.date_of_birth)
+        elif cycle_type == 'health':
+            periods, current_period, progress = get_health_cycle(user_profile.date_of_birth)
+        elif cycle_type == 'reincarnation':
+            periods, current_period, progress = get_reincarnation_cycle(user_profile.date_of_birth)
         try:
             current_number = periods.index(current_period) + 1 if current_period in periods else None
-        except Exception:
+        except (ValueError, AttributeError):
             current_number = None
+
     elif cycle_type == 'daily':
         periods, current_period = get_daily_cycle()
-        progress = None
-        current_number = None
         try:
             current_number = periods.index(current_period) + 1
-        except Exception:
+        except (ValueError, AttributeError):
             current_number = None
-    elif cycle_type == 'yearly':
-        if not user_profile or not user_profile.date_of_birth:
-            return JsonResponse({'error': 'birth_date_missing'}, status=400)
-        periods, current_period, progress = get_yearly_cycle(user_profile.date_of_birth)
-        current_number = None
+
+    elif cycle_type == 'soul':
+        periods, current_period, progress = get_soul_cycle()
         try:
             current_number = periods.index(current_period) + 1 if current_period in periods else None
-        except Exception:
+        except (ValueError, AttributeError):
             current_number = None
+
     elif cycle_type == 'business':
-        # for business cycles, optionally return a single business if business_id provided
         business_id = request.GET.get('business_id')
         try:
             businesses_qs = request.user.business_set.all()
@@ -317,63 +322,39 @@ def user_cycle_api(request, cycle_type):
         if business_id:
             try:
                 b = businesses_qs.get(pk=int(business_id))
+                periods, current_period, progress = get_business_cycle(b.establishment_date)
+                current_number = periods.index(current_period) + 1 if current_period in periods else None
+                template = _get_template_for_cycle(cycle_type, current_number)
+                item = {
+                    'business': {'id': b.id, 'name': b.name},
+                    'periods': periods,
+                    'current_period': current_period,
+                    'progress': progress,
+                    'template': template,
+                }
+                legacy = {'business': b.name, 'periods': periods, 'current_period': current_period, 'progress': progress, 'template': template}
+                return JsonResponse({'business_cycles': [item], 'business': legacy})
             except Exception:
                 return JsonResponse({'error': 'business_not_found'}, status=404)
-            periods, current_period, progress = get_business_cycle(b.establishment_date)
-            tpl = CycleTemplate.objects.filter(cycle_type='business', period_number=(periods.index(current_period) + 1) if current_period in periods else None).first() if current_period else None
-            # Flatten template effects for client use
-            if tpl:
-                eff = tpl.effects or {}
-                tpl_obj = {'description': tpl.description, 'effects': eff, 'start_age': eff.get('start_age'), 'end_age': eff.get('end_age'), 'advice': eff.get('advice') or eff.get('summary')}
-            else:
-                tpl_obj = None
-            item = {
-                'business': {'id': b.id, 'name': b.name},
-                'periods': periods,
-                'current_period': current_period,
-                'progress': progress,
-                'template': tpl_obj,
-            }
-            # Backwards-compat: include legacy 'business' key expected by older clients/tests
-            legacy = {'business': b.name, 'periods': periods, 'current_period': current_period, 'progress': progress, 'template': tpl_obj}
-            return JsonResponse({'business_cycles': [item], 'business': legacy})
+        else:
+            result = []
+            for b in businesses_qs:
+                periods, current_period, progress = get_business_cycle(b.establishment_date)
+                current_number = periods.index(current_period) + 1 if current_period in periods else None
+                template = _get_template_for_cycle(cycle_type, current_number)
+                result.append({
+                    'business': {'id': b.id, 'name': b.name},
+                    'periods': periods,
+                    'current_period': current_period,
+                    'progress': progress,
+                    'template': template,
+                })
+            return JsonResponse({'business_cycles': result})
 
-        # otherwise return list for management views
-        result = []
-        for b in businesses_qs:
-            periods, current_period, progress = get_business_cycle(b.establishment_date)
-            tpl = CycleTemplate.objects.filter(cycle_type='business', period_number=(periods.index(current_period) + 1) if current_period in periods else None).first() if current_period else None
-            if tpl:
-                eff = tpl.effects or {}
-                tpl_obj = {'description': tpl.description, 'effects': eff, 'start_age': eff.get('start_age'), 'end_age': eff.get('end_age'), 'advice': eff.get('advice') or eff.get('summary')}
-            else:
-                tpl_obj = None
-            result.append({
-                'business': {'id': b.id, 'name': b.name},
-                'periods': periods,
-                'current_period': current_period,
-                'progress': progress,
-                'template': tpl_obj,
-            })
-        return JsonResponse({'business_cycles': result})
-    elif cycle_type == 'soul':
-        # support soul cycle requests
-        periods, current_period, progress = get_soul_cycle()
-        current_number = None
     else:
         return JsonResponse({'error': 'unsupported_cycle_type'}, status=400)
 
-    # lookup template
-    template = None
-    try:
-        if current_number:
-            tpl = CycleTemplate.objects.filter(cycle_type=cycle_type, period_number=current_number).first()
-        else:
-            tpl = None
-        if tpl:
-            eff = tpl.effects or {}
-            template = {'description': tpl.description, 'effects': eff, 'start_age': eff.get('start_age'), 'end_age': eff.get('end_age'), 'advice': eff.get('advice') or eff.get('summary')}
-    except Exception:
-        template = None
+    template = _get_template_for_cycle(cycle_type, current_number)
 
     return JsonResponse({'periods': periods, 'current_period': current_period, 'current_period_number': current_number, 'progress': progress, 'template': template})
+

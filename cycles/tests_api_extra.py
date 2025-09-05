@@ -14,6 +14,7 @@ class CycleApiExtraTests(TestCase):
         self.user = User.objects.create_user(username='tester', password='pass')
         # create a profile via signal or directly
         self.client.login(username='tester', password='pass')
+
         # create a business for the user (include required establishment_date)
         import datetime
         self.business = Business.objects.create(user=self.user, name='Acme LLC', establishment_date=datetime.date(2020,1,1))

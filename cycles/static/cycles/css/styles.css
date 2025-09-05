@@ -1,3 +1,13 @@
+body {
+    color: #e5e7eb; /* light gray */
+    font-size: 1.125rem; /* 18px */
+    line-height: 1.75rem; /* 28px */
+}
+
+.cycle-card p {
+    color: #d1d5db; /* gray-300 */
+}
+
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }

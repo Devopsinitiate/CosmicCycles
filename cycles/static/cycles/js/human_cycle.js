@@ -5,11 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
   if (!canvas && !ringContainer) return;
 
   const cycleButtons = document.querySelectorAll('[data-cycle]');
-  const templatePanel = document.getElementById('humanTemplatePanel');
   const modal = document.getElementById('fullTemplateModal');
   const modalBody = document.getElementById('modalBody');
-  const openFullBtn = document.getElementById('openFullTemplate');
   const closeModalBtn = document.getElementById('closeModal');
+  const healthPeriodsContainer = document.getElementById('healthPeriods');
+  const reincarnationPeriodsContainer = document.getElementById('reincarnationPeriods');
 
   let activeChart = null;
 
@@ -43,13 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // For the human cycle we display the compact SVG ring and the template panel.
     const ring = document.getElementById('cycleRing');
-    const tplPanel = document.getElementById('humanTemplatePanel');
     if (cycleType === 'human') {
       if (ring) ring.classList.remove('hidden');
-      if (tplPanel) tplPanel.classList.remove('hidden');
     } else {
       if (ring) ring.classList.add('hidden');
-      if (tplPanel) tplPanel.classList.add('hidden');
     }
   }
 
@@ -123,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
             card.setAttribute('role', 'article');
             card.setAttribute('tabindex', '0');
             card.setAttribute('aria-label', `${period.name} - ${bizName}`);
+            card.setAttribute('data-period-details', JSON.stringify(period));
             const inner = document.createElement('div');
             inner.className = 'p-6';
             inner.innerHTML = `
@@ -169,40 +167,6 @@ document.addEventListener('DOMContentLoaded', function() {
         label.classList.add('cycle-label');
         ringContainer.appendChild(label);
       }
-      // Populate template panel if template data exists (support business where template was returned differently)
-  if (templatePanel && data._template_for_ui) {
-        const desc = document.getElementById('humanTemplateDescription');
-        const effectsList = document.getElementById('humanTemplateEffects');
-        const currentName = document.getElementById('humanCurrentName');
-        const currentRange = document.getElementById('humanCurrentRange');
-        const tpl = data._template_for_ui || {};
-        // tpl might be an object of effects, or a flattened template with description/advice
-        desc.textContent = tpl.description || tpl.summary || tpl.advice || '';
-        effectsList.innerHTML = '';
-        if (currentRange && (tpl.start_age || tpl.end_age)) {
-          currentRange.textContent = (tpl.start_age || '?') + ' - ' + (tpl.end_age || '?');
-        }
-        if (currentName && data.periods && data.current_period_number) {
-          const pIndex = data.current_period_number - 1;
-          if (data.periods[pIndex] && data.periods[pIndex].name) currentName.textContent = data.periods[pIndex].name;
-        }
-        if (tpl.advice) {
-          const li = document.createElement('li'); li.textContent = tpl.advice; effectsList.appendChild(li);
-        }
-        if (tpl.effects) {
-          if (Array.isArray(tpl.effects)) {
-            tpl.effects.forEach(e => { const li = document.createElement('li'); li.textContent = e; effectsList.appendChild(li); });
-          } else if (typeof tpl.effects === 'object') {
-            Object.values(tpl.effects).forEach(v => { const li = document.createElement('li'); li.textContent = v; effectsList.appendChild(li); });
-          } else if (typeof tpl.effects === 'string') {
-            const li = document.createElement('li'); li.textContent = tpl.effects; effectsList.appendChild(li);
-          }
-        }
-        templatePanel.classList.remove('hidden');
-      } else if (templatePanel) {
-        templatePanel.classList.add('hidden');
-      }
-
       // Render business periods when business cycle is active
       if (cycleType === 'business') {
         const bp = document.getElementById('businessPeriods');
@@ -240,6 +204,7 @@ document.addEventListener('DOMContentLoaded', function() {
               card.setAttribute('role', 'article');
               card.setAttribute('tabindex', '0');
               card.setAttribute('aria-label', `${period.name} - Soul period`);
+              card.setAttribute('data-period-details', JSON.stringify(period));
               const inner = document.createElement('div');
               inner.innerHTML = `
                 <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
@@ -253,47 +218,82 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
 
-      // Modal behavior - render HTML when opening
-      if (openFullBtn && modal && modalBody) {
-        openFullBtn.onclick = function() {
-          const tpl = data._template_for_ui || data.template || {};
-          const currentPeriod = (data.periods && data.current_period_number) ? (data.periods[data.current_period_number - 1] || {}) : (data.current_period || {});
-          // prefer template description, fallback to period name
-          const title = (tpl && tpl.description) ? tpl.description : (currentPeriod && currentPeriod.name) ? currentPeriod.name : 'Details';
-          document.getElementById('modalTitle').textContent = title;
-          let html = '';
-          // Show the richer set of fields: template fields first, then fallback to the period's fields
-          if (tpl.description) html += `<p class="mb-2 text-gray-800 dark:text-gray-200">${tpl.description}</p>`;
-          if (tpl.advice) html += `<p class="mb-2"><strong>Advice:</strong> ${tpl.advice}</p>`;
-          // include period principle/suggestion to give additional context
-          if (currentPeriod.principle && !tpl.principle) html += `<p class="mb-2"><strong>Principle:</strong> ${currentPeriod.principle}</p>`;
-          if (currentPeriod.suggestion && !tpl.suggestion) html += `<p class="mb-2"><strong>Suggestion:</strong> ${currentPeriod.suggestion}</p>`;
-          if (tpl.start_age || tpl.end_age || (currentPeriod.start_age || currentPeriod.end_age)) html += `<p class="mb-2">Age range: ${tpl.start_age || currentPeriod.start_age || '?'} - ${tpl.end_age || currentPeriod.end_age || '?'}</p>`;
-          // Effects section
-          if (tpl.effects || currentPeriod.effects) {
-            const effectsSource = tpl.effects || currentPeriod.effects;
-            html += '<div class="mt-3"><strong>Effects</strong><ul class="list-disc list-inside ml-4 text-gray-700 dark:text-gray-300">';
-            if (Array.isArray(effectsSource)) effectsSource.forEach(e => html += `<li>${e}</li>`);
-            else if (typeof effectsSource === 'object') Object.values(effectsSource).forEach(v => html += `<li>${v}</li>`);
-            else html += `<li>${effectsSource}</li>`;
-            html += '</ul></div>';
-          }
-          // Add raw period dates if present
-          if (currentPeriod.start || currentPeriod.end) html += `<p class="mt-3 text-sm text-gray-600">Period range: ${currentPeriod.start || '?'} - ${currentPeriod.end || '?'}</p>`;
-          modalBody.innerHTML = html || '<p class="text-gray-700">No additional details available.</p>';
-          modal.classList.remove('hidden');
-          modal.classList.add('flex');
+      // Render health periods when health cycle is active
+      if (cycleType === 'health') {
+        const hp = document.getElementById('healthPeriods');
+        if (hp) {
+          hp.innerHTML = '';
+          const periods = data.periods || [];
+          const current = data.current_period || {};
+          const currentName = (current && current.name) ? current.name : null;
+          periods.forEach(period => {
+            try {
+              const active = (period.name && currentName && period.name === currentName);
+              const card = document.createElement('div');
+              card.className = 'p-4 rounded-lg';
+              if (active) card.classList.add('period-active'); else card.classList.add('bg-gray-50');
+              // accessibility
+              card.setAttribute('role', 'article');
+              card.setAttribute('tabindex', '0');
+              card.setAttribute('aria-label', `${period.name} - Health period`);
+              card.setAttribute('data-period-details', JSON.stringify(period));
+              const inner = document.createElement('div');
+              inner.innerHTML = `
+                <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
+                <p>${period.principle || ''}</p>
+              `;
+              card.appendChild(inner);
+              hp.appendChild(card);
+            } catch (e) { console.warn('render health period failed', e); }
+          });
         }
       }
+
+      // Render reincarnation periods when reincarnation cycle is active
+      if (cycleType === 'reincarnation') {
+        const rp = document.getElementById('reincarnationPeriods');
+        if (rp) {
+          rp.innerHTML = '';
+          const periods = data.periods || [];
+          const current = data.current_period || {};
+          const currentName = (current && current.name) ? current.name : null;
+          periods.forEach(period => {
+            try {
+              const active = (period.name && currentName && period.name === currentName);
+              const card = document.createElement('div');
+              card.className = 'p-4 rounded-lg';
+              if (active) card.classList.add('period-active'); else card.classList.add('bg-gray-50');
+              // accessibility
+              card.setAttribute('role', 'article');
+              card.setAttribute('tabindex', '0');
+              card.setAttribute('aria-label', `${period.name} - Reincarnation period`);
+              card.setAttribute('data-period-details', JSON.stringify(period));
+              const inner = document.createElement('div');
+              inner.innerHTML = `
+                <h4 class="font-semibold text-lg text-indigo-800">${period.name}</h4>
+                <p>${period.principle || ''}</p>
+                <p class="text-gray-500 mt-1"><em>Suggestion: ${period.suggestion || ''}</em></p>
+              `;
+              card.appendChild(inner);
+              rp.appendChild(card);
+            } catch (e) { console.warn('render reincarnation period failed', e); }
+          });
+        }
+      }
+
       if (closeModalBtn && modal) {
         closeModalBtn.onclick = function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
       }
-      // overlay click to close
-      if (modal) {
-        modal.onclick = function(e) { if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }
-      }
       // Escape key to close
       document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+
+  if (closeModalBtn && modal) {
+    closeModalBtn.onclick = function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+  }
+  // overlay click to close
+  if (modal) {
+    modal.onclick = function(e) { if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }
+  }
   // populate top summary/currentCycleInfo with friendly info
       if (currentDateTimeEl) {
         // show a simple timestamp and summary
@@ -322,6 +322,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (ageRange) html += `<div class="text-sm text-gray-300">Age range: ${ageRange}</div>`;
         // include a short principle/suggestion if available
         const currentPeriod = (data.periods && data.current_period_number) ? (data.periods[data.current_period_number - 1] || {}) : (data.current_period || {});
+        if (currentPeriod.start_date && currentPeriod.end_date) {
+            html += `<div class="text-sm text-gray-300">From: ${currentPeriod.start_date} To: ${currentPeriod.end_date}</div>`;
+        }
         if (currentPeriod.principle) html += `<div class="mt-2 text-gray-300">${currentPeriod.principle}</div>`;
         if (currentPeriod.suggestion) html += `<div class="mt-1 text-sm text-gray-400"><em>Suggestion: ${currentPeriod.suggestion}</em></div>`;
         currentCycleInfoEl.innerHTML = html;
@@ -333,8 +336,16 @@ document.addEventListener('DOMContentLoaded', function() {
           soulText.textContent = (progress || 0) + '%';
         }
       }
+
+      // Add click event listeners to period cards
+      document.querySelectorAll('.cycle-card, [data-period-details]').forEach(card => {
+        card.addEventListener('click', () => {
+          const periodDetails = JSON.parse(card.getAttribute('data-period-details'));
+          openPeriodModal(periodDetails);
+        });
+      });
     })
-  .catch(err => { console.error('Failed to load cycle', err); if (templatePanel) templatePanel.classList.add('hidden'); });
+  .catch(err => { console.error('Failed to load cycle', err); });
   }
 
   // wire cycle switch buttons
@@ -364,6 +375,16 @@ document.addEventListener('DOMContentLoaded', function() {
     el.style.width = (Math.min(Math.max(val, 0), 100)) + '%';
   });
 
+  if (closeModalBtn && modal) {
+    closeModalBtn.onclick = function() { modal.classList.add('hidden'); modal.classList.remove('flex'); }
+  }
+  // overlay click to close
+  if (modal) {
+    modal.onclick = function(e) { if (e.target === modal) { modal.classList.add('hidden'); modal.classList.remove('flex'); } }
+  }
+  // Escape key to close
+  document.addEventListener('keydown', function(e) { if (e.key === 'Escape' && modal && !modal.classList.contains('hidden')) { modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+
   // Ensure soul UI isn't left with 'Loading...' — initialize friendly values if empty
   // initialize soul progress from data-progress on the circle/text
   const soulText = document.getElementById('soulProgressText');
@@ -381,6 +402,40 @@ document.addEventListener('DOMContentLoaded', function() {
   } catch (e) {
     console.warn('Failed to init soul progress from data-progress', e);
   }
+
+  // Function to open the modal with period details
+  function openPeriodModal(details) {
+    const modal = document.getElementById('fullTemplateModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+
+    if (modal && modalTitle && modalBody) {
+      modalTitle.textContent = details.name;
+      let html = '';
+      if (details.full_description) {
+        html += `<p class="mb-2">${details.full_description}</p>`;
+      } else {
+        if (details.start_date && details.end_date) {
+          html += `<p class="mb-2"><strong>From:</strong> ${details.start_date} <strong>To:</strong> ${details.end_date}</p>`;
+        } else if (details.start && details.end) {
+          html += `<p class="mb-2"><strong>Time:</strong> ${details.start} - ${details.end}</p>`;
+        }
+        html += `<p class="mb-2"><strong>Principle:</strong> ${details.principle}</p>`;
+        html += `<p class="mb-2"><strong>Suggestion:</strong> ${details.suggestion}</p>`;
+      }
+      modalBody.innerHTML = html;
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+  }
+
+  // Add click event listeners to period cards
+      document.querySelectorAll('.cycle-card, [data-period-details]').forEach(card => {
+        card.addEventListener('click', () => {
+          const periodDetails = JSON.parse(card.getAttribute('data-period-details'));
+          openPeriodModal(periodDetails);
+        });
+      });
 
   // initial render
   setLastSelected('human');
